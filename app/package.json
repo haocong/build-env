@@ -1,0 +1,20 @@
+{
+  "main": "index.html",
+  "name": "udp-chat",
+  "description": "chat-room based on udp protocol",
+  "version": "1.0.0",
+  "window": {
+    "toolbar": false,
+    "frame": true,
+    "position": "center",
+    "width": 900,
+    "height": 540,
+    "resizable": false
+  },
+  "webkit": {
+    "plugin": true
+  },
+  "dependencies": {
+    "ip": "^1.1.0"
+  }
+}

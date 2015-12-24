@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+
+  <script src="components/webcomponentsjs/webcomponents-lite.js"></script>
+
+  <title>UDP聊天室</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="import" href="elements/chat-app.html">
+
+  <style>
+    body {
+      font-family: 'Helvetica Neue', helvetica, arial;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      margin: 0;
+    }
+  </style>
+
+</head>
+<body>
+
+  <chat-app></chat-app>
+
+  <script>
+    var stream = require('./base.js');
+    var app = document.querySelector('chat-app');
+    app.threads = [{
+      id: 0,
+      title: '255.255.255.255:' + stream.port,
+      messages: [],
+      lastMessage: ''
+    }];
+    app.set('user.name', stream.ip + ':' + stream.port);
+    app.addEventListener('new-message', function(e) {
+      stream.send(e.detail.text, e.detail.dest);
+    });
+    stream.on('adduser', function (rinfo) {
+      var isnewClient = true;
+      app.threads.map(function(thread) {
+        if (thread.title == rinfo.address + ':' + rinfo.port) {
+          isnewClient = false;
+        }
+      });
+      if (isnewClient) {
+        app.push('threads', {
+          id: app.threads.length,
+          title: rinfo.address + ':' + rinfo.port,
+          messages: [],
+          lastMessage: ''
+        });
+      }
+    });
+    stream.on('broad', function (msg, rinfo) {
+      app.push('threads.0.messages', {
+        user: rinfo.address + ':' + rinfo.port,
+        text: msg
+      });
+      app.set('threads.0.lastMessage', msg);
+    });
+    stream.on('thread', function (msg, rinfo) {
+      app.threads.map(function (thread) {
+        if (thread.title == rinfo.address + ':' + rinfo.port) {
+          var path = 'threads.' + thread.id + '.messages';
+          app.push(path, {
+            user: rinfo.address + ':' + rinfo.port,
+            text: msg
+          });
+          app.set('threads.' + thread.id + '.lastMessage', msg);
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
